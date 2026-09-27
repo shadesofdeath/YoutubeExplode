@@ -50,7 +50,10 @@ VideoWatchPage VideoController::getVideoWatchPage(const std::string& videoId, co
 
 PlayerResponse VideoController::requestPlayer(const std::string& videoId, const std::string& body,
                                               const std::string& userAgent, const CancellationToken& ct) {
-    auto raw = context_.postJson(kPlayerEndpoint, body, ct, {{"User-Agent", userAgent}});
+    Http::Headers headers{{"User-Agent", userAgent}};
+    if (auto visitorData = context_.visitorData(ct))
+        headers.emplace_back("X-Goog-Visitor-Id", *visitorData);
+    auto raw = context_.postJson(kPlayerEndpoint, body, ct, headers);
     auto response = PlayerResponse::parse(raw);
     if (!response.isAvailable())
         throw Exceptions::VideoUnavailableException("Video '" + videoId + "' is not available.");

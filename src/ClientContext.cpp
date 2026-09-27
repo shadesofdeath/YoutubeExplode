@@ -239,7 +239,25 @@ std::optional<std::string> ClientContext::visitorData(const CancellationToken& c
     } catch (const Exceptions::RequestLimitExceededException&) {
         throw;
     } catch (const std::exception&) {
-        // Visitor data is helpful but not mandatory: continue without it.
+        // Fall through to the innertube endpoint below.
+    }
+
+    // Fallback: the innertube visitor_id endpoint (tiny response). Without visitor data, YouTube
+    // answers player requests from some networks with "Sign in to confirm you're not a bot".
+    if (!value || isBlank(*value)) {
+        try {
+            auto raw = postJson("https://www.youtube.com/youtubei/v1/visitor_id",
+                                R"({"context":{"client":{"clientName":"WEB","clientVersion":"2.20210408.08.00","hl":"en","gl":"US"}}})",
+                                cancellationToken);
+            if (auto json = tryParseJson(raw))
+                value = jsonString(dig(*json, {"responseContext", "visitorData"}));
+        } catch (const Exceptions::OperationCanceledException&) {
+            throw;
+        } catch (const Exceptions::RequestLimitExceededException&) {
+            throw;
+        } catch (const std::exception&) {
+            // Visitor data is helpful but not mandatory: continue without it.
+        }
     }
 
     // Cache failures too: visitor data is optional and retrying on every request would only add latency.

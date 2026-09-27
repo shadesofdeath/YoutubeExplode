@@ -124,6 +124,27 @@ youtube.channels().getByUser("TheTyrrr");
 auto uploads = youtube.channels().getUploads("UCSJ4gkVC6NrvII8umztf0Ow", 20);
 ```
 
+## Music matching (Spotify → YouTube)
+
+```cpp
+Music::TrackMatcher matcher(youtube);
+
+// Title, artists and duration as shown by the catalog (e.g. Spotify)
+auto track = matcher.resolve({"Around the World", {"Daft Punk"}, std::chrono::seconds(429)});
+if (track) {
+    track->match.video.id();       // cache: spotifyTrackId -> videoId
+    track->match.score;
+    track->audio->url();           // play this
+    track->alternatives;           // "choose another source"
+}
+
+auto match = matcher.find({"Şımarık", {"Tarkan"}, std::chrono::seconds(234)});   // match only, no stream
+auto async = matcher.resolveAsync({"Believer", {"Imagine Dragons"}, std::chrono::seconds(204)});
+
+// Next play of a cached track: single request
+auto manifest = youtube.videos().streams().getManifest(cachedVideoId);
+```
+
 ## Async
 
 ```cpp

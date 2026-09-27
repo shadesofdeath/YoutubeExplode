@@ -273,7 +273,13 @@ private:
                 }
             }
 
-            auto contentLength = probeContentLength(data, url, ct);
+            std::optional<long long> contentLength;
+            try {
+                contentLength = probeContentLength(data, url, ct);
+            } catch (const Exceptions::HttpRequestException&) {
+                // A single unreachable stream must not fail the whole manifest.
+                continue;
+            }
             if (!contentLength)
                 continue;
 
