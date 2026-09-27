@@ -50,8 +50,8 @@ struct Skip {
 
 #define CHECK_EQ(a, b)                                                                                \
     do {                                                                                              \
-        const auto& va_ = (a);                                                                        \
-        const auto& vb_ = (b);                                                                        \
+        const auto va_ = (a);                                                                         \
+        const auto vb_ = (b);                                                                         \
         if (!(va_ == vb_)) {                                                                          \
             std::ostringstream oss_;                                                                  \
             oss_ << __FILE__ << ":" << __LINE__ << ": CHECK_EQ(" #a ", " #b ") failed\n    left:  "   \
